@@ -71,9 +71,13 @@ sudo dnf install wine winetricks
 ### Quick Start
 
 ```bash
-# Clone this repository (includes all files!)
+# Clone this repository
 git clone https://github.com/bpawnzZ/photoshopCClinux-lightroom.git
-cd photoshopCClinux_LocalFiles
+cd photoshopCClinux-lightroom
+
+# Install git LFS (required for large files)
+git lfs install
+git lfs pull
 
 # Run the installer
 chmod +x setup.sh
