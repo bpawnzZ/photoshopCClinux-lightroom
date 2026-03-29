@@ -18,29 +18,23 @@ function main() {
     RESOURCES_PATH="$SCR_PATH/resources"
     WINE_PREFIX="$SCR_PATH/prefix"
     
-    rmdir_if_exist "$WINE_PREFIX"
+    # Check if Lightroom is already installed
+    if [ "$(check_adobe_app_installed lightroom)" = "true" ]; then
+        show_message "Lightroom is already installed in this Wine prefix!"
+        ask_question "Reinstall Lightroom?" "N"
+        if [ "$question_result" = "no" ]; then
+            show_message "Skipping Lightroom installation..."
+            exit 0
+        fi
+    fi
     
     export_var
     
-    echo -e "\033[1;93mplease install mono and gecko packages then click on OK button, do not change Windows version from Windows 7\e[0m"
-    winecfg 2> "$SCR_PATH/wine-error.log"
-    if [ $? -eq 0 ];then
-        show_message "prefix configured..."
-        sleep 5
-    else
-        error "prefix config failed :("
-    fi
-
-    sleep 5
-    if [ -f "$WINE_PREFIX/user.reg" ];then
-        set_dark_mod
-    else
-        error "user.reg Not Found :("
-    fi
+    # Create directories safely (don't delete if they exist)
+    safe_create_dir "$RESOURCES_PATH"
     
-    rmdir_if_exist "$RESOURCES_PATH"
-
-    winetricks atmlib fontsmooth=rgb vcrun2008 vcrun2010 vcrun2012 vcrun2013 atmlib msxml3 msxml6
+    # Install missing dependencies (checks if prefix exists, creates if not)
+    install_missing_dependencies "Lightroom CC"
     
     sleep 3
     install_lightroomSE

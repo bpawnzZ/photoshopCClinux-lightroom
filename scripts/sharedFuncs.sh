@@ -661,6 +661,121 @@ function check_32bit_support() {
             if ! dnf repoquery --available --whatprovides '*.i686' >/dev/null 2>&1; then
                 warning "32-bit repository may not be enabled. Some Wine dependencies may be missing."
             fi
+             ;;
+     esac
+}
+
+# ==================== INTELLIGENT DEPENDENCY MANAGEMENT ====================
+
+# Check if Wine prefix exists and is valid
+function check_wine_prefix() {
+    if [ -d "$WINE_PREFIX" ] && [ -f "$WINE_PREFIX/system.reg" ]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Check if specific winetricks component is installed
+function check_winetricks_component() {
+    local component="$1"
+    
+    if [ ! -d "$WINE_PREFIX" ]; then
+        echo "false"
+        return
+    fi
+    
+    # Check registry for component installation
+    if grep -qi "$component" "$WINE_PREFIX/system.reg" 2>/dev/null || \
+       grep -qi "$component" "$WINE_PREFIX/user.reg" 2>/dev/null; then
+        echo "true"
+    else
+        echo "false"
+    fi
+}
+
+# Get list of Adobe application dependencies
+function get_adobe_dependencies() {
+    # Common dependencies for Photoshop and Lightroom
+    echo "atmlib fontsmooth=rgb vcrun2008 vcrun2010 vcrun2012 vcrun2013 msxml3 msxml6"
+}
+
+# Install only missing dependencies
+function install_missing_dependencies() {
+    local app_name="$1"
+    
+    show_message "Checking dependencies for $app_name..."
+    
+    # Check if Wine prefix exists
+    if [ "$(check_wine_prefix)" = "false" ]; then
+        show_message "Creating new Wine prefix..."
+        winecfg 2> "$SCR_PATH/wine-error.log" || error "Failed to create Wine prefix"
+        
+        if [ -f "$WINE_PREFIX/user.reg" ]; then
+            set_dark_mod
+        fi
+        
+        # Install all dependencies for fresh prefix
+        show_message "Installing all Windows dependencies..."
+        winetricks $(get_adobe_dependencies)
+        return 0
+    fi
+    
+    # Wine prefix exists, check what's missing
+    show_message "Wine prefix already exists, checking for missing dependencies..."
+    
+    local missing_deps=()
+    local all_deps=($(get_adobe_dependencies))
+    
+    for dep in "${all_deps[@]}"; do
+        if [ "$(check_winetricks_component "$dep")" = "false" ]; then
+            missing_deps+=("$dep")
+            show_message "Missing: $dep"
+        else
+            show_message "Already installed: $dep"
+        fi
+    done
+    
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        show_message "Installing missing dependencies: ${missing_deps[*]}"
+        winetricks "${missing_deps[@]}"
+    else
+        show_message "All dependencies are already installed!"
+    fi
+}
+
+# Safe directory creation (doesn't delete if exists)
+function safe_create_dir() {
+    if [ ! -d "$1" ]; then
+        mkdir -p "$1"
+        show_message "Created directory: $1"
+    else
+        show_message "Directory already exists: $1"
+    fi
+}
+
+# Check if Adobe application is already installed
+function check_adobe_app_installed() {
+    local app_name="$1"
+    
+    case "$app_name" in
+        photoshop)
+            if [ -f "$WINE_PREFIX/drive_c/users/$USER/PhotoshopSE/Photoshop.exe" ]; then
+                echo "true"
+            else
+                echo "false"
+            fi
+            ;;
+        lightroom)
+            if [ -f "$WINE_PREFIX/drive_c/users/$USER/LightroomSE/Lightroom.8/LightroomPortable.exe" ] || \
+               [ -f "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" ]; then
+                echo "true"
+            else
+                echo "false"
+            fi
+            ;;
+        *)
+            echo "false"
             ;;
     esac
 }
