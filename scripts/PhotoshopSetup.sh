@@ -122,7 +122,8 @@ function replacement() {
     local filename="replacement.tgz"
     local filemd5="6441a8e77c082897a99c2b7b588c9ac4"
     local filelink="https://victor.poshtiban.io/p/gictor/photoshopCC/replacement.tgz"
-    local filepath="/home/insomnia/git/photoshopCClinux/files/$filename"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local filepath="$script_dir/../files/$filename"
 
     # Use local file if exists, otherwise download
     if [ ! -f "$filepath" ]; then
@@ -150,7 +151,8 @@ function install_photoshopSE() {
     local filemd5="b63f6ed690343ee12b6195424f94c33f"
     local filelink="https://victor.poshtiban.io/p/gictor/photoshopCC/photoshopCC-V19.1.6-2018x64.tgz"
     # local filelink="http://127.0.0.1:8080/photoshopCC-V19.1.6-2018x64.tgz"
-    local filepath="/home/insomnia/git/photoshopCClinux/files/$filename"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local filepath="$script_dir/../files/$filename"
 
     # Use local file if exists, otherwise download
     if [ ! -f "$filepath" ]; then
