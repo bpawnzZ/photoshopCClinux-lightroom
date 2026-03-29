@@ -61,7 +61,6 @@
 | :desktop_computer: **Launchers** | Desktop entries for both Photoshop & Lightroom |
 | :camera: **Camera Raw** | RAW processing integration |
 | :penguin: **Cross-Distro** | Works on Arch, Ubuntu, Debian, Fedora, etc. |
-| :free: **Free** | No license key required |
 
 ---
 
