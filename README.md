@@ -139,6 +139,8 @@ chmod +x winecfg.sh
 ./winecfg.sh
 ```
 
+> **Note:** Set Windows version to **Windows 7** in winecfg. Windows 10 may fail to start the applications.
+
 ### Troubleshooting GPU / Liquify
 
 If Liquify or GPU features don't work:
