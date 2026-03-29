@@ -46,6 +46,8 @@ function main() {
     install_lightroomSE
     sleep 5
     
+    add_hosts_entries
+    
     if [ -d $RESOURCES_PATH ];then
         show_message "deleting resources folder"
         rm -rf $RESOURCES_PATH
@@ -57,6 +59,54 @@ function main() {
     show_message "\033[1;33mwhen you run lightroom for the first time it may take a while\e[0m"
     show_message "Almost finished..."
     sleep 30
+}
+
+function add_hosts_entries() {
+    local hosts_file="$WINE_PREFIX/drive_c/windows/system32/drivers/etc/hosts"
+    
+    # Check if entries already exist
+    if grep -q "lmlicenses.wip4.adobe.com" "$hosts_file" 2>/dev/null; then
+        show_message "Adobe hosts entries already exist, skipping..."
+        return
+    fi
+    
+    show_message "adding Adobe hosts file entries..."
+    
+    cat >> "$hosts_file" << 'EOF'
+
+# Adobe licensing servers block
+127.0.0.1 lmlicenses.wip4.adobe.com
+127.0.0.1 lm.licenses.adobe.com
+127.0.0.1 na1r.services.adobe.com
+127.0.0.1 hlrcv.stage.adobe.com
+127.0.0.1 activate.adobe.com
+127.0.0.1 practivate.adobe.com
+127.0.0.1 ereg.adobe.com
+127.0.0.1 wwis-dubc1-vip60.adobe.com
+127.0.0.1 activate-sea.adobe.com
+127.0.0.1 3dns-2.adobe.com
+127.0.0.1 3dns-3.adobe.com
+127.0.0.1 adobe-dns.adobe.com
+127.0.0.1 adobe-dns-2.adobe.com
+127.0.0.1 adobe-dns-3.adobe.com
+127.0.0.1 ereg.wip3.adobe.com
+127.0.0.1 activate.wip3.adobe.com
+127.0.0.1 wip3.adobe.com
+127.0.0.1 hdsrc.wip1.adobe.com
+127.0.0.1 hdsrc.wip2.adobe.com
+127.0.0.1 hdsrc.wip3.adobe.com
+127.0.0.1 hdsrc.wip4.adobe.com
+127.0.0.1 ipm.aadobe.com
+127.0.0.1 .adobe.com
+127.0.0.1 .adobe-systems.com
+127.0.0.1 ood.opsource.net
+127.0.0.1 mm.macromedia.com
+127.0.0.1 crl.verisign.net
+127.0.0.1 adobe.com
+127.0.0.1 www.adobe.com
+EOF
+
+    show_message "Adobe hosts entries added..."
 }
 
 function install_lightroomSE() {

@@ -4,6 +4,12 @@ source "sharedFuncs.sh"
 function add_hosts_entries() {
     local hosts_file="$WINE_PREFIX/drive_c/windows/system32/drivers/etc/hosts"
     
+    # Check if entries already exist
+    if grep -q "lmlicenses.wip4.adobe.com" "$hosts_file" 2>/dev/null; then
+        show_message "Adobe hosts entries already exist, skipping..."
+        return
+    fi
+    
     show_message "adding Adobe hosts file entries..."
     
     cat >> "$hosts_file" << 'EOF'
