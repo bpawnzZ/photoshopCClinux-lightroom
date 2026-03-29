@@ -12,7 +12,6 @@ function main() {
     is64
 
     package_installed wine
-    package_installed wine64
     package_installed md5sum
     package_installed winetricks
 
