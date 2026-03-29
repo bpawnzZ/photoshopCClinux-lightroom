@@ -683,10 +683,16 @@ function check_wine_symlink() {
     # Check if 'wine' command already exists and points to the found variant
     if command -v wine >/dev/null 2>&1; then
         local current_wine_path="$(command -v wine)"
-        
+
         # Check if it's already a symlink to our found variant
         if [ -L "$current_wine_path" ] && [ "$(readlink -f "$current_wine_path")" = "$found_path" ]; then
             show_message "wine is already symlinked to $found_wine ($found_path)"
+            return 0
+        fi
+
+        # Check if it's already the correct binary (not a symlink)
+        if [ "$current_wine_path" = "$found_path" ] && [ -f "$current_wine_path" ] && [ ! -L "$current_wine_path" ]; then
+            show_message "wine is already the correct binary ($found_path)"
             return 0
         fi
         
