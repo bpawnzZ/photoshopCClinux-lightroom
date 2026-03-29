@@ -101,16 +101,19 @@ chmod +x setup.sh
 | `CameraRaw_12_2_1.exe` | ~400 MB | Adobe Camera Raw (optional) |
 | `lightroomCC-V7.5-2018x64.tgz` | ~1 GB | Lightroom CC installer |
 
+All components are installed via `./setup.sh`:
+- Option 1: Photoshop CC
+- Option 2: Adobe Camera Raw
+- Option 3: Winecfg
+- Option 4: Uninstall
+- Option 5: Lightroom CC
+- Option 6: Exit
+
 ---
 
 ## :camera: Adobe Camera Raw (Optional)
 
-```bash
-chmod +x scripts/cameraRawInstaller.sh
-./scripts/cameraRawInstaller.sh
-```
-
-Then restart Photoshop and go to `Edit → Preferences → Camera Raw`
+Install via `./setup.sh` (option 2), then restart Photoshop and go to `Edit → Preferences → Camera Raw`
 
 ---
 
@@ -120,12 +123,7 @@ Then restart Photoshop and go to `Edit → Preferences → Camera Raw`
 
 > Originally requested here: [Gictorbit/photoshopCClinux#221](https://github.com/Gictorbit/photoshopCClinux/issues/221)
 
-```bash
-chmod +x scripts/lightroom.sh
-./scripts/lightroom.sh
-```
-
-Then run Lightroom from the command line:
+Install via `./setup.sh` (option 5), or run from command line:
 ```bash
 ~/photoshopCClinux/lightroom
 ```
