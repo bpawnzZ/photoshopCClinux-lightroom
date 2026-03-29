@@ -23,7 +23,8 @@ function install_cameraRaw() {
     local filename="CameraRaw_12_2_1.exe"
     local filemd5="b6a6b362e0c159be5ba1d0eb1ebd0054"
     local filelink="https://download.adobe.com/pub/adobe/photoshop/cameraraw/win/12.x/CameraRaw_12_2_1.exe"
-    local filepath="/home/insomnia/git/photoshopCClinux/files/$filename"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local filepath="$script_dir/../files/$filename"
 
     # Use local file if exists, otherwise download
     if [ ! -f "$filepath" ]; then

@@ -113,7 +113,8 @@ function install_lightroomSE() {
     local filename="lightroomCC-V7.5-2018x64.tgz"
     local filemd5="9d18785a4e950664051a76b70d2cc95e"
     local filelink=""
-    local filepath="/home/insomnia/git/photoshopCClinux/files/$filename"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local filepath="$script_dir/../files/$filename"
 
     if [ ! -f "$filepath" ]; then
         error "lightroom package not found: $filepath"
