@@ -99,6 +99,7 @@ chmod +x setup.sh
 | `photoshopCC-V19.1.6-2018x64.tgz` | ~1 GB | Photoshop CC v19 installer |
 | `replacement.tgz` | ~15 MB | Resource replacement files |
 | `CameraRaw_12_2_1.exe` | ~400 MB | Adobe Camera Raw (optional) |
+| `lightroomCC-V7.5-2018x64.tgz` | ~1 GB | Lightroom CC installer |
 
 ---
 
