@@ -4,8 +4,8 @@ source "$SCRIPT_DIR/sharedFuncs.sh"
 
 function main() {
     
-    mkdir -p $SCR_PATH
-    mkdir -p $CACHE_PATH
+    mkdir -p "$SCR_PATH"
+    mkdir -p "$CACHE_PATH"
     
     setup_log "================| script executed |================"
 
@@ -18,7 +18,7 @@ function main() {
     RESOURCES_PATH="$SCR_PATH/resources"
     WINE_PREFIX="$SCR_PATH/prefix"
     
-    rmdir_if_exist $WINE_PREFIX
+    rmdir_if_exist "$WINE_PREFIX"
     
     export_var
     
@@ -38,7 +38,7 @@ function main() {
         error "user.reg Not Found :("
     fi
     
-    rmdir_if_exist $RESOURCES_PATH
+    rmdir_if_exist "$RESOURCES_PATH"
 
     winetricks atmlib fontsmooth=rgb vcrun2008 vcrun2010 vcrun2012 vcrun2013 atmlib msxml3 msxml6
     
@@ -48,9 +48,9 @@ function main() {
     
     add_hosts_entries
     
-    if [ -d $RESOURCES_PATH ];then
+    if [ -d "$RESOURCES_PATH" ];then
         show_message "deleting resources folder"
-        rm -rf $RESOURCES_PATH
+        rm -rf "$RESOURCES_PATH"
     else
         error "resources folder Not Found"
     fi

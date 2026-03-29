@@ -1,21 +1,222 @@
 #!/usr/bin/env bash
 
-function check_wine_symlink() {
-    if [ ! -e /usr/bin/wine ] && [ -e /usr/bin/wine64 ]; then
-        echo "Creating wine -> wine64 symlink..."
-        sudo ln -sf /usr/bin/wine64 /usr/bin/wine
+# Source shared functions
+if [ -f "scripts/sharedFuncs.sh" ]; then
+    source "scripts/sharedFuncs.sh"
+else
+    echo "Error: scripts/sharedFuncs.sh not found!"
+    exit 1
+fi
+
+# ==================== DISTRO DETECTION ====================
+function detect_distro() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "$ID"
+    elif command -v lsb_release &> /dev/null; then
+        lsb_release -si | tr '[:upper:]' '[:lower:]'
+    else
+        echo "unknown"
+    fi
+}
+
+function detect_package_manager() {
+    if command -v pacman &> /dev/null; then
+        echo "pacman"
+    elif command -v apt-get &> /dev/null; then
+        echo "apt"
+    elif command -v dnf &> /dev/null; then
+        echo "dnf"
+    elif command -v yum &> /dev/null; then
+        echo "yum"
+    elif command -v zypper &> /dev/null; then
+        echo "zypper"
+    else
+        echo "unknown"
+    fi
+}
+
+# ==================== DEPENDENCY CHECKING ====================
+function check_wine_installation() {
+    echo "Checking Wine installation..."
+    
+    # Check for any wine binary
+    if command -v wine &> /dev/null || command -v wine64 &> /dev/null || command -v wine-staging &> /dev/null; then
+        echo "✓ Wine is installed"
+        return 0
     fi
     
-    if [ ! -e /usr/bin/wine ]; then
-        echo -e "\033[1;31mError: wine not found. Please install wine first.\e[0m"
+    local distro=$(detect_distro)
+    local pm=$(detect_package_manager)
+    
+    echo -e "\033[1;33mWine not found!\e[0m"
+    echo "This setup requires Wine to run Photoshop CC."
+    echo ""
+    echo "To install Wine, run one of these commands based on your distribution:"
+    echo ""
+    
+    case "$pm" in
+        pacman)
+            echo "  Arch/Manjaro:"
+            echo "    sudo pacman -S wine-staging winetricks"
+            echo "    # For full dependencies, see README.md"
+            ;;
+        apt)
+            echo "  Ubuntu/Debian:"
+            echo "    sudo dpkg --add-architecture i386"
+            echo "    sudo apt update"
+            echo "    sudo apt install --install-recommends winehq-staging winetricks"
+            ;;
+        dnf|yum)
+            echo "  Fedora/RHEL/CentOS:"
+            echo "    sudo dnf install wine winetricks"
+            ;;
+        zypper)
+            echo "  openSUSE:"
+            echo "    sudo zypper install wine winetricks"
+            ;;
+        *)
+            echo "  Unknown distribution. Please install Wine and winetricks manually."
+            echo "  Visit: https://wiki.winehq.org/Download"
+            ;;
+    esac
+    
+    echo ""
+    echo "After installing Wine, run this setup again."
+    return 1
+}
+
+function check_required_tools() {
+    local missing=()
+    
+    # Check for winetricks
+    if ! command -v winetricks &> /dev/null; then
+        missing+=("winetricks")
+    fi
+    
+    # Check for at least one download tool
+    if ! command -v aria2c &> /dev/null && \
+       ! command -v curl &> /dev/null && \
+       ! command -v wget &> /dev/null; then
+        missing+=("aria2c, curl, or wget")
+    fi
+    
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo -e "\033[1;33mMissing tools: ${missing[*]}\e[0m"
+        echo "Some features may not work properly."
+        echo "Consider installing missing tools for better experience."
+        return 1
+    fi
+    
+    echo "✓ All required tools are available"
+    return 0
+}
+
+function check_wine_dependencies() {
+    local pm=$(detect_package_manager)
+    local missing_deps=()
+    
+    # Only check for Arch Linux (most detailed dependency list in README)
+    if [ "$pm" = "pacman" ]; then
+        echo "Checking recommended Wine dependencies for Arch Linux..."
+        
+        # Check some critical dependencies from README
+        local critical_deps=(
+            "lib32-giflib" "lib32-libpng" "lib32-libldap" "lib32-gnutls"
+            "lib32-mpg123" "lib32-openal" "lib32-v4l-utils" "lib32-libpulse"
+            "lib32-alsa-plugins" "lib32-alsa-lib" "lib32-libjpeg-turbo"
+        )
+        
+        for dep in "${critical_deps[@]}"; do
+            if ! pacman -Q "$dep" &>/dev/null; then
+                missing_deps+=("$dep")
+            fi
+        done
+        
+        if [ ${#missing_deps[@]} -gt 0 ]; then
+            echo -e "\033[1;33mWarning: Some recommended Wine dependencies may be missing.\e[0m"
+            echo "For optimal Photoshop performance, consider installing:"
+            echo "  sudo pacman -S ${missing_deps[*]}"
+            echo ""
+            echo "For complete dependency list, see README.md"
+            echo ""
+        else
+            echo "✓ Recommended Wine dependencies are installed"
+        fi
+    fi
+}
+
+function preflight_check() {
+    echo "=== Pre-flight Check ==="
+    
+    # Check Wine
+    if ! check_wine_installation; then
+        echo -e "\033[1;31mCannot proceed without Wine.\e[0m"
         exit 1
     fi
+    
+    # Check tools
+    check_required_tools
+    
+    # Check/create symlink
+    if ! check_wine_symlink; then
+        echo -e "\033[1;31mFailed to setup Wine symlink.\e[0m"
+        echo "Please ensure Wine is properly installed."
+        exit 1
+    fi
+    
+    # Check Wine dependencies (warning only)
+    check_wine_dependencies
+    
+    echo "✓ Pre-flight check passed"
+    echo ""
+}
+
+# ==================== WINE SYMLINK HANDLING ====================
+function check_wine_symlink() {
+    # Check for wine in PATH first
+    if command -v wine &> /dev/null; then
+        echo "✓ Wine found: $(command -v wine)"
+        return 0
+    fi
+    
+    # Check for wine64
+    local wine64_path=$(command -v wine64 2>/dev/null || echo "")
+    if [ -n "$wine64_path" ]; then
+        echo "Creating wine -> wine64 symlink..."
+        # Try with sudo first
+        if sudo ln -sf "$wine64_path" /usr/bin/wine 2>/dev/null; then
+            echo "✓ Symlink created: /usr/bin/wine -> $wine64_path"
+            return 0
+        else
+            # Try user-local symlink
+            mkdir -p "$HOME/.local/bin"
+            if ln -sf "$wine64_path" "$HOME/.local/bin/wine" 2>/dev/null; then
+                export PATH="$HOME/.local/bin:$PATH"
+                echo "✓ User symlink created: $HOME/.local/bin/wine -> $wine64_path"
+                return 0
+            fi
+        fi
+    fi
+    
+    # Check for wine-staging
+    local wine_staging_path=$(command -v wine-staging 2>/dev/null || echo "")
+    if [ -n "$wine_staging_path" ]; then
+        echo "Creating wine -> wine-staging symlink..."
+        if sudo ln -sf "$wine_staging_path" /usr/bin/wine 2>/dev/null; then
+            echo "✓ Symlink created: /usr/bin/wine -> $wine_staging_path"
+            return 0
+        fi
+    fi
+    
+    # No wine found
+    return 1
 }
 
 function main() {
     
-    #check/create wine symlink
-    check_wine_symlink
+    # Run pre-flight checks (Wine, dependencies, symlinks)
+    preflight_check
     
     #print banner
     banner
@@ -68,7 +269,7 @@ function run_script() {
     else
         error "$script_name not Found..."    
     fi
-    cd "./scripts/" && bash $script_name
+    cd "./scripts/" && bash "$script_name"
     unset script_path
 }
 

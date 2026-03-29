@@ -33,12 +33,12 @@ function install_cameraRaw() {
     fi
 
     echo "===============| Adobe Camera Raw v12 |===============" >> "$SCR_PATH/wine-error.log"
-    show_message2 "Adobe Camera Raw v12 installation..."
+    show_message "Adobe Camera Raw v12 installation..."
 
-    wine $filepath &>> "$SCR_PATH/wine-error.log" || error2 "sorry something went wrong during Adobe Camera Raw v12 installation"
+    wine "$filepath" &>> "$SCR_PATH/wine-error.log" || error "sorry something went wrong during Adobe Camera Raw v12 installation"
 
     notify-send "Photoshop CC" "Adobe Camera Raw v12 installed successfully" -i "photoshop"
-    show_message2 "Adobe Camera Raw v12 installed..."
+    show_message "Adobe Camera Raw v12 installed..."
     unset filename filemd5 filelink filepath
 }
 
