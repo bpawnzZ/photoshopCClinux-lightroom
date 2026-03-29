@@ -128,7 +128,7 @@ function install_lightroomSE() {
     show_message "install lightroom..."
     show_message "\033[1;33mPlease don't change default Destination Folder\e[0m"
 
-    wine64 "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log" || error "sorry something went wrong during lightroom installation"
+    wine "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log" || error "sorry something went wrong during lightroom installation"
     
     notify-send "Lightroom CC" "lightroom installed successfully" -i "lightroom"
     show_message "lightroomCC V7 x64 installed..."
