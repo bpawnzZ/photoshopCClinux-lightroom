@@ -1,0 +1,16 @@
+                     ┏━━━━━━━━━━━━━━━━━━━━━━━━━┫ Photoshop CC Installer ┣━━━━━━━━━━━━━━━━━━━━━━━━┓
+                     ┃                                                                           ┃
+  ███████████████████████████                                                                    ┃
+  ██                       ██      1- Install photoshop CC                                       ┃
+  ██  ███████▆▃            ██                                                                    ┃
+  ██  ███   ▝██▙           ██      2- Install adobe camera raw v12                               ┃
+  ██  ███    ███           ██                                                                    ┃
+  ██  ███   ▟██▛▗▟████▙    ██      3- configure virtual drive          (winecfg)                 ┃
+  ██  ███████▛  ██▋        ██                                                                    ┃
+  ██  ███       ▝▜█████▙   ██      4- uninstall photoshop                                        ┃
+  ██  ███             ██▌  ██                                                                    ┃
+  ██  ███        ▗▟████▛   ██      5- exit                                                       ┃
+  ██                       ██                                                                    ┃
+  ███████████████████████████                                                                    ┃
+                     ┃                                                                           ┃
+                     ┗━━━━━━━━━━━━━━━┫ https://github.com/Gictorbit/photoshopCClinux ┣━━━━━━━━━━━┛
