@@ -160,6 +160,7 @@ function set_dark_mod() {
 
 function export_var() {
     export WINEPREFIX="$WINE_PREFIX"
+    export WINEARCH=win64
     show_message "wine variables exported..."
 }
 
