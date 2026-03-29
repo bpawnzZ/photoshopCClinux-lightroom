@@ -6,8 +6,8 @@ function check_wine_symlink() {
         sudo ln -sf /usr/bin/wine64 /usr/bin/wine
     fi
     
-    if [ ! -e /usr/bin/wine64 ]; then
-        echo -e "\033[1;31mError: wine64 not found. Please install wine64 first.\e[0m"
+    if [ ! -e /usr/bin/wine ]; then
+        echo -e "\033[1;31mError: wine not found. Please install wine first.\e[0m"
         exit 1
     fi
 }
