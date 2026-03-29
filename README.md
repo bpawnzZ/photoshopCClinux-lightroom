@@ -20,7 +20,7 @@
 
 **The most complete Adobe Creative Suite setup for Linux - Both Photoshop AND Lightroom CC!** 🎨📸
 
-*No external downloads needed - Everything bundled locally!*
+*No external downloads needed - No Dead Links - Everything bundled locally!*
 
 </div>
 
