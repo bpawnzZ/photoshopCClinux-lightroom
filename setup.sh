@@ -27,22 +27,22 @@ function main() {
         run_script "scripts/PhotoshopSetup.sh" "PhotoshopSetup.sh"
         ;;
     2)  
+        echo "run lightroom CC Installation..."
+        echo -n "using lightroom installer..."
+        run_script "scripts/lightroom.sh" "lightroom.sh"
+        ;;
+    3)  
         echo -n "run adobe camera Raw installer"
         run_script "scripts/cameraRawInstaller.sh" "cameraRawInstaller.sh"
         ;;
-    3)  
+    4)  
         echo "run winecfg..."
         echo -n "open virtualdrive configuration..."
         run_script "scripts/winecfg.sh" "winecfg.sh"
         ;;
-    4)  
+    5)  
         echo -n "uninstall photoshop CC ..."
         run_script "scripts/uninstaller.sh" "uninstaller.sh"
-        ;;
-    5)  
-        echo "run lightroom CC Installation..."
-        echo -n "using lightroom installer..."
-        run_script "scripts/lightroom.sh" "lightroom.sh"
         ;;
     6)  
         echo "exit setup..."
