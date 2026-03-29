@@ -173,45 +173,7 @@ function preflight_check() {
 }
 
 # ==================== WINE SYMLINK HANDLING ====================
-function check_wine_symlink() {
-    # Check for wine in PATH first
-    if command -v wine &> /dev/null; then
-        echo "✓ Wine found: $(command -v wine)"
-        return 0
-    fi
-    
-    # Check for wine64
-    local wine64_path=$(command -v wine64 2>/dev/null || echo "")
-    if [ -n "$wine64_path" ]; then
-        echo "Creating wine -> wine64 symlink..."
-        # Try with sudo first
-        if sudo ln -sf "$wine64_path" /usr/bin/wine 2>/dev/null; then
-            echo "✓ Symlink created: /usr/bin/wine -> $wine64_path"
-            return 0
-        else
-            # Try user-local symlink
-            mkdir -p "$HOME/.local/bin"
-            if ln -sf "$wine64_path" "$HOME/.local/bin/wine" 2>/dev/null; then
-                export PATH="$HOME/.local/bin:$PATH"
-                echo "✓ User symlink created: $HOME/.local/bin/wine -> $wine64_path"
-                return 0
-            fi
-        fi
-    fi
-    
-    # Check for wine-staging
-    local wine_staging_path=$(command -v wine-staging 2>/dev/null || echo "")
-    if [ -n "$wine_staging_path" ]; then
-        echo "Creating wine -> wine-staging symlink..."
-        if sudo ln -sf "$wine_staging_path" /usr/bin/wine 2>/dev/null; then
-            echo "✓ Symlink created: /usr/bin/wine -> $wine_staging_path"
-            return 0
-        fi
-    fi
-    
-    # No wine found
-    return 1
-}
+# Function moved to scripts/sharedFuncs.sh
 
 function main() {
     
@@ -309,13 +271,6 @@ function banner() {
     unset banner_path
 }
 
-function error() {
-    echo -e "\033[1;31merror:\e[0m $@"
-    exit 1
-}
 
-function warning() {
-    echo -e "\033[1;33mWarning:\e[0m $@"
-}
 
 main

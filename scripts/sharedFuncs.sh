@@ -44,10 +44,7 @@ function error() {
     exit 1
 }
 
-function error2() {
-    echo -e "\033[1;31merror:\e[0m $@"
-    exit 1
-}
+
 
 function warning() {
     echo -e "\033[1;33mWarning:\e[0m $@"
@@ -174,7 +171,16 @@ function download_component() {
     local tout=0
     while true;do
         if [ $tout -ge 3 ];then
-            error "sorry something went wrong during download $4"
+            error "Failed to download $4 after 3 attempts.
+
+Possible solutions:
+1. Check your internet connection
+2. Try again later - the download server might be temporarily unavailable
+3. Download manually from: $3
+   and place it in: $CACHE_PATH/
+4. If you have the file elsewhere, copy it to: $CACHE_PATH/$4
+
+Error details logged to: $SCR_PATH/setuplog.log"
         fi
         if [ -f "$1" ];then
             local FILE_ID=$(md5sum "$1" | cut -d" " -f1)
@@ -190,32 +196,43 @@ function download_component() {
             ariapkg=$(package_installed aria2c "summary")
             curlpkg=$(package_installed curl "summary")
             
+            ((tout++))
             if [ "$ariapkg" == "true" ];then
                 show_message "using aria2c to download $4"
-                aria2c -c -x 8 -d "$CACHE_PATH" -o "$4" "$3"
-                
-                if [ $? -eq 0 ];then
-                    notify-send "Photoshop CC" "$4 download completed" -i "download"
+                if ! aria2c -c -x 8 -d "$CACHE_PATH" -o "$4" "$3"; then
+                    warning "aria2c download failed for $4"
+                    continue
                 fi
+                
+                notify-send "Photoshop CC" "$4 download completed" -i "download"
 
             elif [ "$curlpkg" == "true" ];then
                 show_message "using curl to download $4"
-                curl "$3" -o "$1"
+                if ! curl -f -L "$3" -o "$1"; then
+                    warning "curl download failed for $4 (URL: $3)"
+                    continue
+                fi
             else
                 show_message "using wget to download $4"
-                wget --no-check-certificate "$3" -P "$CACHE_PATH"
-                
-                if [ $? -eq 0 ];then
-                    notify-send "Photoshop CC" "$4 download completed" -i "download"
+                if ! wget --no-check-certificate "$3" -P "$CACHE_PATH"; then
+                    warning "wget download failed for $4 (URL: $3)"
+                    continue
                 fi
+                
+                notify-send "Photoshop CC" "$4 download completed" -i "download"
             fi
-            ((tout++))
         fi
     done
 }
 
 function rmdir_if_exist() {
     if [ -d "$1" ];then
+        warning "WARNING: Directory $1 already exists and will be DELETED: rm -rf $1"
+        warning "This will permanently delete all contents of $1"
+        ask_question "Continue with deletion?" "N"
+        if [ "$question_result" == "no" ]; then
+            error "Operation cancelled by user."
+        fi
         rm -rf "$1"
         show_message "\033[0;36m$1\e[0m directory exists deleting it..."
     fi
@@ -252,7 +269,7 @@ function check_arg() {
 
     if [[ $# != 0 ]];then
         usage
-        error2 "unknown argument"
+        error "unknown argument"
     fi
 
     if [[ $dashd != 1 ]] ;then
@@ -301,6 +318,41 @@ function ask_question() {
 
 function usage() {
     echo "USAGE: [-c cache directory] [-d installation directory]"
+}
+
+# Check if user has sudo permissions, provide helpful message if not
+function check_sudo_access() {
+    if [ "$EUID" -eq 0 ]; then
+        return 0  # Already root
+    fi
+    
+    if sudo -n true 2>/dev/null; then
+        return 0  # Has sudo access without password
+    fi
+    
+    # Try to run a simple sudo command
+    if ! sudo -v 2>/dev/null; then
+        warning "You don't have sudo access or need to enter password."
+        warning "Some operations may fail. You can:"
+        warning "1. Run with sudo: sudo $0"
+        warning "2. Contact your system administrator"
+        warning "3. Some features will use user-local fallbacks"
+        return 1
+    fi
+    return 0
+}
+
+# Safe sudo wrapper that provides better error messages
+function safe_sudo() {
+    if [ "$EUID" -eq 0 ]; then
+        # Already root, run command directly
+        "$@"
+    elif check_sudo_access; then
+        sudo "$@"
+    else
+        warning "Cannot run '$*' with sudo. Trying alternative approach..."
+        return 1
+    fi
 }
 
 function save_paths() {
@@ -575,8 +627,13 @@ function check_install_wine() {
             
             if [ -n "$ubuntu_codename" ]; then
                 show_message "Adding WineHQ repository for $ubuntu_codename..."
-                echo "deb [signed-by=/usr/share/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $ubuntu_codename main" | sudo tee /etc/apt/sources.list.d/winehq.list
-                sudo apt-get update
+                if check_sudo_access; then
+                    echo "deb [signed-by=/usr/share/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $ubuntu_codename main" | sudo tee /etc/apt/sources.list.d/winehq.list
+                    sudo apt-get update
+                else
+                    warning "Cannot add WineHQ repository without sudo access."
+                    warning "You may need to install Wine manually or run with sudo."
+                fi
             fi
         fi
         
@@ -596,54 +653,101 @@ function check_install_wine() {
     check_wine_symlink
 }
 
-# Enhanced wine symlink checking
+# Enhanced wine symlink checking with priority: wine-staging > wine64 > wine
+        warning "wine command test failed."
+# Enhanced wine symlink checking with priority: wine-staging > wine64 > wine
 function check_wine_symlink() {
-    show_message "Checking wine/wine64 symlink..."
+    show_message "Checking wine/wine64/wine-staging symlinks..."
     
-    # Check if wine command exists
-    if command -v wine >/dev/null 2>&1; then
-        show_message "wine command found: $(command -v wine)"
-        
-        # Check if it's a symlink to wine64
-        if [ -L "$(command -v wine)" ] && [ "$(readlink -f "$(command -v wine)")" = "$(command -v wine64 2>/dev/null || echo '')" ]; then
-            show_message "wine is already symlinked to wine64."
-        elif command -v wine64 >/dev/null 2>&1; then
-            # Create symlink if wine64 exists but wine doesn't point to it
-            show_message "Creating wine -> wine64 symlink..."
-            local wine_path="$(command -v wine)"
-            local wine64_path="$(command -v wine64)"
-            
-            # Backup original wine if it exists and isn't already wine64
-            if [ -f "$wine_path" ] && [ ! -L "$wine_path" ]; then
-                show_message "Backing up original wine binary..."
-                sudo mv "$wine_path" "${wine_path}.backup"
-            fi
-            
-            # Create symlink
-            sudo ln -sf "$wine64_path" "$wine_path"
-            show_message "Symlink created: $wine_path -> $wine64_path"
+    # Priority order: wine-staging > wine64 > wine
+    local wine_priority=("wine-staging" "wine64" "wine")
+    local found_wine=""
+    local found_path=""
+    
+    # Check for available wine variants in priority order
+    for wine_variant in "${wine_priority[@]}"; do
+        if command -v "$wine_variant" >/dev/null 2>&1; then
+            found_wine="$wine_variant"
+            found_path="$(command -v "$wine_variant")"
+            show_message "Found $found_wine at: $found_path"
+            break
         fi
-    elif command -v wine64 >/dev/null 2>&1; then
-        # wine64 exists but wine doesn't - create symlink
-        show_message "wine64 found but wine not found. Creating symlink..."
-        local wine64_path="$(command -v wine64)"
-        sudo ln -sf "$wine64_path" /usr/bin/wine
-        show_message "Symlink created: /usr/bin/wine -> $wine64_path"
+    done
+    
+    # No wine variant found
+    if [ -z "$found_wine" ]; then
+        error "No wine variant found (checked: wine-staging, wine64, wine). Wine installation may have failed."
+        return 1
+    fi
+    
+    # Check if 'wine' command already exists and points to the found variant
+    if command -v wine >/dev/null 2>&1; then
+        local current_wine_path="$(command -v wine)"
+        
+        # Check if it's already a symlink to our found variant
+        if [ -L "$current_wine_path" ] && [ "$(readlink -f "$current_wine_path")" = "$found_path" ]; then
+            show_message "wine is already symlinked to $found_wine ($found_path)"
+            return 0
+        fi
+        
+        # wine exists but doesn't point to our found variant
+        show_message "wine exists at $current_wine_path but doesn't point to $found_wine"
+        
+        # Backup original if it's a regular file (not a symlink)
+        if [ -f "$current_wine_path" ] && [ ! -L "$current_wine_path" ]; then
+            show_message "Backing up original wine binary..."
+            safe_sudo mv "$current_wine_path" "${current_wine_path}.backup" 2>/dev/null || warning "Could not backup wine binary (no sudo access?)"
+        fi
+        
+        # Create symlink to found variant
+        show_message "Creating wine -> $found_wine symlink..."
+        if safe_sudo ln -sf "$found_path" "$current_wine_path" 2>/dev/null; then
+            show_message "Symlink created: $current_wine_path -> $found_path"
+        else
+            # Try user-local symlink
+            show_message "Could not create system symlink (no sudo access). Trying user-local symlink..."
+            mkdir -p "$HOME/.local/bin"
+            if ln -sf "$found_path" "$HOME/.local/bin/wine" 2>/dev/null; then
+                export PATH="$HOME/.local/bin:$PATH"
+                show_message "User symlink created: $HOME/.local/bin/wine -> $found_path"
+                show_message "Added $HOME/.local/bin to PATH for this session"
+            else
+                warning "Failed to create wine symlink. Photoshop may not work correctly."
+                return 1
+            fi
+        fi
     else
-        error "Neither wine nor wine64 found. Wine installation may have failed."
+        # wine command doesn't exist - create it
+        show_message "wine command not found. Creating symlink to $found_wine..."
+        
+        # Try system-wide symlink first
+        if safe_sudo ln -sf "$found_path" /usr/bin/wine 2>/dev/null; then
+            show_message "System symlink created: /usr/bin/wine -> $found_path"
+        else
+            # Try user-local symlink
+            show_message "Could not create system symlink (no sudo access). Trying user-local symlink..."
+            mkdir -p "$HOME/.local/bin"
+            if ln -sf "$found_path" "$HOME/.local/bin/wine" 2>/dev/null; then
+                export PATH="$HOME/.local/bin:$PATH"
+                show_message "User symlink created: $HOME/.local/bin/wine -> $found_path"
+                show_message "Added $HOME/.local/bin to PATH for this session"
+            else
+                warning "Failed to create wine symlink. Photoshop may not work correctly."
+                return 1
+            fi
+        fi
     fi
     
     # Verify the symlink works
     if ! wine --version >/dev/null 2>&1; then
         warning "wine command test failed. There may be issues with the Wine installation."
+        warning "If you created a user-local symlink, make sure $HOME/.local/bin is in your PATH"
+        return 1
     else
         show_message "Wine version: $(wine --version 2>/dev/null | head -n1 || echo 'Unknown')"
+        show_message "Wine architecture: $(wine wineboot --version 2>/dev/null | grep -i 'wine' || echo 'Unknown')"
     fi
-}
-
-# Check for 32-bit library support
-function check_32bit_support() {
-    show_message "Checking 32-bit library support..."
+    
     
     case "$DISTRO_ID" in
         arch|manjaro|endeavouros)
