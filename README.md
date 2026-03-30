@@ -47,14 +47,14 @@
 
 | Feature | Description |
 |:--------|:------------|
-| :art: **Complete Suite** | **NEW!** Photoshop CC + Lightroom CC together |
-| :package: **Bundled Files** | All ~2GB installers included - no downloads needed |
-| :wine_glass: **Smart Wine** | Auto-detects wine-staging > wine64 > wine |
-| :gear: **Auto-Setup** | Installs vcrun, atmlib, msxml automatically |
-| :recycle: **Shared Prefix** | Both apps use same optimized Wine environment |
-| :desktop_computer: **Launchers** | Desktop entries for both Photoshop & Lightroom |
-| :camera: **Camera Raw** | RAW processing integration |
-| :penguin: **Cross-Distro** | Works on Arch, Ubuntu, Debian, Fedora, etc. |
+| 🎨 **Photoshop + Lightroom** | Both Adobe applications working together |
+| 📦 **Bundled Files** | All ~2GB installers included - no downloads needed |
+| 🍷 **Smart Wine Detection** | Auto-detects wine-staging > wine64 > wine |
+| ⚙️ **Auto-Setup** | Installs vcrun, atmlib, msxml automatically |
+| 🔄 **Shared Wine Prefix** | Both apps use same optimized Wine environment |
+| 🖥️ **Desktop Launchers** | Desktop entries for both Photoshop & Lightroom |
+| 📷 **Camera Raw Support** | RAW processing integration |
+| 🐧 **Cross-Distro** | Works on Arch, Ubuntu, Debian, Fedora, etc. |
 
 ---
 
@@ -94,7 +94,7 @@ sudo dnf install wine winetricks
 
 <div align="center">
 
-**Your star helps spread the word!**
+**⭐ Your star helps spread the word! ⭐**
 
 </div>
 
@@ -113,10 +113,10 @@ chmod +x setup.sh
 ```
 
 **That's it!** Choose from the menu:
-- 🎨 **Install Photoshop CC**
-- 📸 **🆕 Install Lightroom CC**
-- 🔧 Configure Wine settings
-- 🗑️ Uninstall if needed
+1. 🎨 **Install Photoshop CC**
+2. 📸 **🆕 Install Lightroom CC**
+3. ⚙️ **Configure Wine settings**
+4. 🗑️ **Uninstall if needed**
 
 > **💡 Pro Tip:** Install Wine first using the commands below for best results!
 
@@ -144,12 +144,12 @@ chmod +x setup.sh
 **Total: ~2.3GB - Everything included, no external downloads!**
 
 ### 📋 **Installation Menu Options**
-- **1.** 🎨 Install Photoshop CC
-- **2.** 📸 **🆕 Install Lightroom CC** (NEW!)
-- **3.** 📷 Install Adobe Camera Raw
-- **4.** ⚙️ Configure Wine Settings
-- **5.** 🗑️ Uninstall Applications
-- **6.** 👋 Exit Setup
+1. 🎨 **Install Photoshop CC**
+2. 📸 **🆕 Install Lightroom CC** (NEW!)
+3. 📷 **Install Adobe Camera Raw**
+4. ⚙️ **Configure Wine Settings**
+5. 🗑️ **Uninstall Applications**
+6. 👋 **Exit Setup**
 
 ---
 
@@ -211,12 +211,12 @@ If Liquify or GPU features don't work:
 
 ### 💬 **Join the Discussion**
 - **GitHub Issues:** Report bugs or request features
-- **GitHub Discussions:** Share your setup experiences
 - **Community Fork:** This project keeps the original alive!
 
 
 
 ### 📈 **Repository Stats**
+
 <div align="center">
 
 **Help keep this project alive - ⭐ Star this repo! ⭐**
@@ -230,16 +230,12 @@ If Liquify or GPU features don't work:
 
 ## :heart: Credits & Acknowledgments
 
-<div align="center">
-
 ### Original Project
 **[Gictorbit/photoshopCClinux](https://github.com/Gictorbit/photoshopCClinux)**  
 *The original project that made this possible*
 
 ### Why This Fork Exists
 The upstream project's download links went dead. This fork keeps the project alive by including all required files locally.
-
-</div>
 
 ---
 
