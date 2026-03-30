@@ -1,4 +1,6 @@
-# 🚀 Complete Adobe Creative Suite on Linux - Photoshop + Lightroom CC!
+# 🚀 Photoshop CC + Lightroom CC on Linux
+
+<small>For any issues with the script, please add them to the [issues page](https://github.com/bpawnzZ/photoshopCClinux-lightroom/issues).</small>
 
 <p align="center">
   <img src="./images/Screenshot.png" alt="Photoshop CC running on Linux" width="800"/>
@@ -18,7 +20,7 @@
 [![Bash](https://img.shields.io/badge/Bash-5.0+-yellowgreen?style=for-the-badge)
 [![GitHub Stars](https://img.shields.io/github/stars/bpawnzZ/photoshopCClinux-lightroom?style=for-the-badge)](https://github.com/bpawnzZ/photoshopCClinux-lightroom/stargazers)
 
-**The most complete Adobe Creative Suite setup for Linux - Both Photoshop AND Lightroom CC!** 🎨📸
+**Photoshop CC + Lightroom CC setup for Linux** 🎨📸
 
 *No external downloads needed - No Dead Links - Everything bundled locally!*
 
@@ -28,7 +30,7 @@
 
 ## ✨ **Why Choose This Repository?**
 
-### 🔥 **COMPLETE ADOBE CREATIVE SUITE**
+### 🔥 **PHOTOSHOP CC + LIGHTROOM CC**
 - **Photoshop CC v19.1.6** - Full professional editing suite
 - **🆕 Lightroom CC v7.5** - Complete photo workflow management
 - **Adobe Camera Raw** - RAW processing integration
@@ -38,14 +40,6 @@
 - **Smart Wine Detection** - Auto-detects wine-staging > wine64 > wine
 - **Cross-Distro Compatibility** - Works on Arch, Ubuntu, Debian, Fedora, etc.
 - **Intelligent Dependencies** - No redundant installations
-- **User-Friendly Setup** - Clear error messages and actionable solutions
-- **No External Downloads** - All ~2GB of files included locally
-
-### 🎯 **WHAT MAKES THIS SPECIAL**
-- **Lightroom + Photoshop Together** - Complete creative workflow on Linux
-- **Regular Updates** - Active maintenance and bug fixes
-- **Community-Driven** - Fork created to keep the project alive
-- **Production-Ready** - Tested across multiple Linux distributions
 
 ---
 
@@ -100,7 +94,7 @@ sudo dnf install wine winetricks
 
 <div align="center">
 
-**⭐ Star this repo first, then install! ⭐**
+**Your star helps spread the word!**
 
 </div>
 
@@ -165,16 +159,7 @@ Install via `./setup.sh` (option 2), then restart Photoshop and go to `Edit → 
 
 ---
 
-## 📸 **🆕 Adobe Lightroom CC** (Full Photo Workflow!)
-
-> **🌟 NEW FEATURE!** Complete Lightroom Classic CC support added to this repository!
-
-**Why Lightroom on Linux matters:**
-- Professional photo editing and organization
-- Non-destructive RAW processing
-- Advanced color grading and retouching
-- Complete photo management workflow
-- **Now works alongside Photoshop CC!**
+## 📸 **🆕 Adobe Lightroom CC**
 
 ### 🚀 **Install Lightroom CC**
 
@@ -190,8 +175,6 @@ Install via `./setup.sh` (option 2), then restart Photoshop and go to `Edit → 
 ```
 
 **Lightroom will appear in your desktop applications menu after installation!**
-
-> **Community Request:** Originally requested in [Gictorbit/photoshopCClinux#221](https://github.com/Gictorbit/photoshopCClinux/issues/221) - Now fulfilled! 🎉
 
 ---
 
@@ -211,13 +194,15 @@ If Liquify or GPU features don't work:
 2. **Uncheck** "Use Graphics Processor"
 3. Restart Photoshop
 
+**Make sure you are using Windows 7 compatibility mode in winecfg.**
+
 ---
 
 ## :arrow_down: Uninstallation
 
 ```bash
-chmod +x uninstaller.sh
-./uninstaller.sh
+./setup.sh
+# Choose option 5: Uninstall Applications
 ```
 
 ---
@@ -229,11 +214,7 @@ chmod +x uninstaller.sh
 - **GitHub Discussions:** Share your setup experiences
 - **Community Fork:** This project keeps the original alive!
 
-### 🎯 **Perfect For:**
-- **Professional Photographers** - Complete Lightroom + Photoshop workflow
-- **Graphic Designers** - Industry-standard tools on Linux
-- **Linux Enthusiasts** - Adobe Creative Suite without Windows
-- **Students** - Free access to professional software
+
 
 ### 📈 **Repository Stats**
 <div align="center">
