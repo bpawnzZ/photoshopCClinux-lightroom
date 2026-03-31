@@ -94,11 +94,23 @@ function main() {
 
     add_hosts_entries
 
-    if [ -d "$RESOURCES_PATH" ];then
-        show_message "deleting resources folder"
+    # Clean up Photoshop installation files but preserve Lightroom if it exists
+    if [ -d "$RESOURCES_PATH/photoshopCC" ]; then
+        show_message "cleaning up Photoshop installation files..."
+        rm -rf "$RESOURCES_PATH/photoshopCC"
+    fi
+    
+    if [ -d "$RESOURCES_PATH/replacement" ]; then
+        show_message "cleaning up replacement files..."
+        rm -rf "$RESOURCES_PATH/replacement"
+    fi
+    
+    # Only delete entire resources folder if it's empty (no Lightroom)
+    if [ -d "$RESOURCES_PATH" ] && [ -z "$(ls -A "$RESOURCES_PATH" 2>/dev/null)" ]; then
+        show_message "resources folder is empty, deleting it..."
         rm -rf "$RESOURCES_PATH"
-    else
-        error "resources folder Not Found"
+    elif [ -d "$RESOURCES_PATH" ]; then
+        show_message "resources folder contains other files (Lightroom?), keeping it..."
     fi
 
     launcher photoshop

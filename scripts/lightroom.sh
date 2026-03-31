@@ -41,12 +41,16 @@ function main() {
     sleep 5
     
     add_hosts_entries
+
+    # Lightroom is portable - keep it in resources directory
+    # Don't delete resources folder for Lightroom installation
+    show_message "Lightroom portable files kept in: $RESOURCES_PATH/lightroomCC/"
     
-    if [ -d "$RESOURCES_PATH" ];then
-        show_message "deleting resources folder"
-        rm -rf "$RESOURCES_PATH"
+    # Verify Lightroom files exist
+    if [ -f "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" ]; then
+        show_message "Lightroom portable installation verified"
     else
-        error "resources folder Not Found"
+        error "Lightroom portable files not found after installation"
     fi
 
     launcher lightroom
