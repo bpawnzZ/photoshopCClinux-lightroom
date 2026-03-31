@@ -29,7 +29,7 @@ function install_cameraRaw() {
     # Use local file if exists, otherwise download
     if [ ! -f "$filepath" ]; then
         filepath="$CACHE_PATH/$filename"
-        download_component $filepath $filemd5 $filelink $filename
+        download_component "$filepath" "$filemd5" "$filelink" "$filename"
     fi
 
     echo "===============| Adobe Camera Raw v12 |===============" >> "$SCR_PATH/wine-error.log"
@@ -41,10 +41,10 @@ function install_cameraRaw() {
     
     # Check if timeout occurred
     local exit_code=$?
-    if [ $exit_code -eq 124 ]; then
+    if [ "$exit_code" -eq 124 ]; then
         warning "Camera Raw installer timed out after 3 minutes. It may have completed or need manual intervention."
         warning "Checking if Camera Raw was installed..."
-    elif [ $exit_code -ne 0 ]; then
+    elif [ "$exit_code" -ne 0 ]; then
         warning "Camera Raw installer exited with code $exit_code. Checking if installation was successful anyway..."
     fi
     

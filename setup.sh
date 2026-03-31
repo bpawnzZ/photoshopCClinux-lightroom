@@ -9,32 +9,7 @@ else
 fi
 
 # ==================== DISTRO DETECTION ====================
-function detect_distro() {
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        echo "$ID"
-    elif command -v lsb_release &> /dev/null; then
-        lsb_release -si | tr '[:upper:]' '[:lower:]'
-    else
-        echo "unknown"
-    fi
-}
-
-function detect_package_manager() {
-    if command -v pacman &> /dev/null; then
-        echo "pacman"
-    elif command -v apt-get &> /dev/null; then
-        echo "apt"
-    elif command -v dnf &> /dev/null; then
-        echo "dnf"
-    elif command -v yum &> /dev/null; then
-        echo "yum"
-    elif command -v zypper &> /dev/null; then
-        echo "zypper"
-    else
-        echo "unknown"
-    fi
-}
+# Uses detect_distro() from sharedFuncs.sh which sets DISTRO_ID and PKG_MANAGER
 
 # ==================== DEPENDENCY CHECKING ====================
 function check_wine_installation() {
@@ -46,8 +21,10 @@ function check_wine_installation() {
         return 0
     fi
     
-    local distro=$(detect_distro)
-    local pm=$(detect_package_manager)
+    # Use distro detection from sharedFuncs.sh
+    detect_distro  # This sets DISTRO_ID and PKG_MANAGER in sharedFuncs.sh
+    local distro="$DISTRO_ID"
+    local pm="$PKG_MANAGER"
     
     echo -e "\033[1;33mWine not found!\e[0m"
     echo "This setup requires Wine to run Photoshop CC."
@@ -113,7 +90,8 @@ function check_required_tools() {
 }
 
 function check_wine_dependencies() {
-    local pm=$(detect_package_manager)
+    detect_distro  # This sets DISTRO_ID and PKG_MANAGER in sharedFuncs.sh
+    local pm="$PKG_MANAGER"
     local missing_deps=()
     
     # Only check for Arch Linux (most detailed dependency list in README)

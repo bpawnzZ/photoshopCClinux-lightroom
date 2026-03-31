@@ -116,10 +116,10 @@ function replacement() {
 
     # Use local file if exists, otherwise download
     if [ ! -f "$filepath" ]; then
-        download_component $filepath $filemd5 $filelink $filename
+        download_component "$filepath" "$filemd5" "$filelink" "$filename"
     fi
 
-    mkdir "$RESOURCES_PATH/replacement"
+    mkdir -p "$RESOURCES_PATH/replacement"
     show_message "extract replacement component..."
     tar -xzf "$filepath" -C "$RESOURCES_PATH/replacement"
 
@@ -145,10 +145,10 @@ function install_photoshopSE() {
 
     # Use local file if exists, otherwise download
     if [ ! -f "$filepath" ]; then
-        download_component $filepath $filemd5 $filelink $filename
+        download_component "$filepath" "$filemd5" "$filelink" "$filename"
     fi
 
-    mkdir "$RESOURCES_PATH/photoshopCC"
+    mkdir -p "$RESOURCES_PATH/photoshopCC"
     show_message "extract photoshop..."
     tar -xzf "$filepath" -C "$RESOURCES_PATH/photoshopCC"
 
@@ -162,10 +162,10 @@ function install_photoshopSE() {
     
     # Check if timeout occurred
     local exit_code=$?
-    if [ $exit_code -eq 124 ]; then
+    if [ "$exit_code" -eq 124 ]; then
         warning "Photoshop installer timed out after 5 minutes. It may have completed or need manual intervention."
         warning "Checking if Photoshop was installed..."
-    elif [ $exit_code -ne 0 ]; then
+    elif [ "$exit_code" -ne 0 ]; then
         warning "Photoshop installer exited with code $exit_code. Checking if installation was successful anyway..."
     fi
     
@@ -177,7 +177,7 @@ function install_photoshopSE() {
     sleep 3
     
     show_message "removing useless helper.exe plugin to avoid errors"
-    rm "$WINE_PREFIX/drive_c/users/$USER/PhotoshopSE/Required/Plug-ins/Spaces/Adobe Spaces Helper.exe"
+    rm -f "$WINE_PREFIX/drive_c/users/$USER/PhotoshopSE/Required/Plug-ins/Spaces/Adobe Spaces Helper.exe" 2>/dev/null || warning "Could not remove helper.exe (may not exist)"
 
     notify-send "Photoshop CC" "photoshop installed successfully" -i "photoshop"
     show_message "photoshopCC V19 x64 installed..."

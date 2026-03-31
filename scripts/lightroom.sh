@@ -114,7 +114,7 @@ function install_lightroomSE() {
         error "lightroom package not found: $filepath"
     fi
 
-    mkdir "$RESOURCES_PATH/lightroomCC"
+    mkdir -p "$RESOURCES_PATH/lightroomCC"
     show_message "extract lightroom..."
     tar -xzf "$filepath" -C "$RESOURCES_PATH/lightroomCC"
 
@@ -128,10 +128,10 @@ function install_lightroomSE() {
     
     # Check if timeout occurred
     local exit_code=$?
-    if [ $exit_code -eq 124 ]; then
+    if [ "$exit_code" -eq 124 ]; then
         warning "Lightroom installer timed out after 5 minutes. It may have completed or need manual intervention."
         warning "Checking if Lightroom was installed..."
-    elif [ $exit_code -ne 0 ]; then
+    elif [ "$exit_code" -ne 0 ]; then
         warning "Lightroom installer exited with code $exit_code. Checking if installation was successful anyway..."
     fi
     

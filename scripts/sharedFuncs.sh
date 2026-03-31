@@ -225,7 +225,7 @@ function export_var() {
 function download_component() {
     local tout=0
     while true;do
-        if [ $tout -ge 3 ];then
+        if [ "$tout" -ge 3 ];then
             error "Failed to download $4 after 3 attempts.
 
 Possible solutions:
@@ -291,7 +291,7 @@ function rmdir_if_exist() {
         rm -rf "$1"
         show_message "\033[0;36m$1\e[0m directory exists deleting it..."
     fi
-    mkdir "$1"
+    mkdir -p "$1"
     show_message "create\033[0;36m $1\e[0m directory..."
 }
 
