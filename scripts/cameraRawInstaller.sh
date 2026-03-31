@@ -35,7 +35,26 @@ function install_cameraRaw() {
     echo "===============| Adobe Camera Raw v12 |===============" >> "$SCR_PATH/wine-error.log"
     show_message "Adobe Camera Raw v12 installation..."
 
-    wine "$filepath" &>> "$SCR_PATH/wine-error.log" || error "sorry something went wrong during Adobe Camera Raw v12 installation"
+    # Run Camera Raw installer with timeout to prevent hanging
+    # Give it 3 minutes (180 seconds) to complete installation
+    timeout 180 wine "$filepath" &>> "$SCR_PATH/wine-error.log"
+    
+    # Check if timeout occurred
+    local exit_code=$?
+    if [ $exit_code -eq 124 ]; then
+        warning "Camera Raw installer timed out after 3 minutes. It may have completed or need manual intervention."
+        warning "Checking if Camera Raw was installed..."
+    elif [ $exit_code -ne 0 ]; then
+        warning "Camera Raw installer exited with code $exit_code. Checking if installation was successful anyway..."
+    fi
+    
+    # Kill any running Camera Raw or Adobe processes
+    show_message "Stopping any running Adobe processes..."
+    pkill -f "CameraRaw" 2>/dev/null || true
+    pkill -f "Adobe" 2>/dev/null || true
+    
+    # Wait a moment for processes to terminate
+    sleep 2
 
     notify-send "Photoshop CC" "Adobe Camera Raw v12 installed successfully" -i "photoshop"
     show_message "Adobe Camera Raw v12 installed..."

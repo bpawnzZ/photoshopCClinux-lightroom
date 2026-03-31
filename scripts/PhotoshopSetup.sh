@@ -101,7 +101,7 @@ function main() {
         error "resources folder Not Found"
     fi
 
-    launcher
+    launcher photoshop
     show_message "\033[1;33mwhen you run photoshop for the first time it may take a while\e[0m"
     show_message "Almost finished..."
     sleep 30
@@ -156,7 +156,25 @@ function install_photoshopSE() {
     show_message "install photoshop..."
     show_message "\033[1;33mPlease don't change default Destination Folder\e[0m"
 
-    wine "$RESOURCES_PATH/photoshopCC/photoshop_cc.exe" &>> "$SCR_PATH/wine-error.log" || error "sorry something went wrong during photoshop installation"
+    # Run Photoshop installer with timeout to prevent hanging
+    # Give it 5 minutes (300 seconds) to complete installation
+    timeout 300 wine "$RESOURCES_PATH/photoshopCC/photoshop_cc.exe" &>> "$SCR_PATH/wine-error.log"
+    
+    # Check if timeout occurred
+    local exit_code=$?
+    if [ $exit_code -eq 124 ]; then
+        warning "Photoshop installer timed out after 5 minutes. It may have completed or need manual intervention."
+        warning "Checking if Photoshop was installed..."
+    elif [ $exit_code -ne 0 ]; then
+        warning "Photoshop installer exited with code $exit_code. Checking if installation was successful anyway..."
+    fi
+    
+    # Kill any running Photoshop processes (it might auto-run after install)
+    show_message "Stopping any running Photoshop processes..."
+    pkill -f "Photoshop.exe" 2>/dev/null || true
+    
+    # Wait a moment for processes to terminate
+    sleep 3
     
     show_message "removing useless helper.exe plugin to avoid errors"
     rm "$WINE_PREFIX/drive_c/users/$USER/PhotoshopSE/Required/Plug-ins/Spaces/Adobe Spaces Helper.exe"

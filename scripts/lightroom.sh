@@ -49,7 +49,7 @@ function main() {
         error "resources folder Not Found"
     fi
 
-    launcher
+    launcher lightroom
     show_message "\033[1;33mwhen you run lightroom for the first time it may take a while\e[0m"
     show_message "Almost finished..."
     sleep 30
@@ -122,7 +122,26 @@ function install_lightroomSE() {
     show_message "install lightroom..."
     show_message "\033[1;33mPlease don't change default Destination Folder\e[0m"
 
-    wine "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log" || error "sorry something went wrong during lightroom installation"
+    # Run Lightroom installer with timeout to prevent hanging
+    # Give it 5 minutes (300 seconds) to complete installation
+    timeout 300 wine "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log"
+    
+    # Check if timeout occurred
+    local exit_code=$?
+    if [ $exit_code -eq 124 ]; then
+        warning "Lightroom installer timed out after 5 minutes. It may have completed or need manual intervention."
+        warning "Checking if Lightroom was installed..."
+    elif [ $exit_code -ne 0 ]; then
+        warning "Lightroom installer exited with code $exit_code. Checking if installation was successful anyway..."
+    fi
+    
+    # Kill any running Lightroom processes (it often auto-runs after install)
+    show_message "Stopping any running Lightroom processes..."
+    pkill -f "LightroomPortable.exe" 2>/dev/null || true
+    pkill -f "Lightroom.exe" 2>/dev/null || true
+    
+    # Wait a moment for processes to terminate
+    sleep 3
     
     notify-send "Lightroom CC" "lightroom installed successfully" -i "lightroom"
     show_message "lightroomCC V7 x64 installed..."

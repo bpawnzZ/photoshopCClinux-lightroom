@@ -60,61 +60,116 @@ function show_message2() {
 }
 
 function launcher() {
+    local app_name="${1:-photoshop}"  # Default to photoshop if not specified
     
     #create launcher script
     local launcher_path="$PWD/launcher.sh"
     local launcher_dest="$SCR_PATH/launcher"
-    rmdir_if_exist "$launcher_dest"
-
+    
+    # Only recreate launcher directory if it doesn't exist
+    if [ ! -d "$launcher_dest" ]; then
+        mkdir -p "$launcher_dest"
+        show_message "Created launcher directory: $launcher_dest"
+    else
+        show_message "Launcher directory already exists: $launcher_dest"
+    fi
 
     if [ -f "$launcher_path" ];then
         show_message "launcher.sh detected..."
         
-        cp "$launcher_path" "$launcher_dest" || error "can't copy launcher"
-        
-        sed -i "s|pspath|$SCR_PATH|g" "$launcher_dest/launcher.sh" && sed -i "s|pscache|$CACHE_PATH|g" "$launcher_dest/launcher.sh" || error "can't edit launcher script"
-        
-        chmod +x "$SCR_PATH/launcher/launcher.sh" || error "can't chmod launcher script"
+        # Only copy launcher if it doesn't exist or is different
+        if [ ! -f "$launcher_dest/launcher.sh" ] || ! cmp -s "$launcher_path" "$launcher_dest/launcher.sh"; then
+            cp "$launcher_path" "$launcher_dest" || error "can't copy launcher"
+            sed -i "s|pspath|$SCR_PATH|g" "$launcher_dest/launcher.sh" && sed -i "s|pscache|$CACHE_PATH|g" "$launcher_dest/launcher.sh" || error "can't edit launcher script"
+            chmod +x "$SCR_PATH/launcher/launcher.sh" || error "can't chmod launcher script"
+            show_message "Launcher script updated"
+        else
+            show_message "Launcher script already up to date"
+        fi
     else
         error "launcher.sh Note Found"
     fi
 
-    #create desktop entry
-    local desktop_entry="$PWD/photoshop.desktop"
-    local desktop_entry_dest="/home/$USER/.local/share/applications/photoshop.desktop"
+    # Determine which desktop entry to create based on app_name
+    local desktop_entry=""
+    local desktop_entry_dest=""
+    local icon_source=""
+    local icon_dest=""
+    local command_name=""
     
+    case "$app_name" in
+        photoshop)
+            desktop_entry="$PWD/photoshop.desktop"
+            desktop_entry_dest="/home/$USER/.local/share/applications/photoshop.desktop"
+            icon_source="../images/AdobePhotoshop-icon.png"
+            icon_dest="$launcher_dest/AdobePhotoshop-icon.png"
+            command_name="photoshop"
+            ;;
+        lightroom)
+            desktop_entry="$PWD/lightroom.desktop"
+            desktop_entry_dest="/home/$USER/.local/share/applications/lightroom.desktop"
+            icon_source="../images/lightroom.png"
+            icon_dest="$launcher_dest/lightroom.png"
+            command_name="lightroom"
+            ;;
+        *)
+            error "Unknown application: $app_name"
+            ;;
+    esac
+    
+    # Create desktop entry
     if [ -f "$desktop_entry" ];then
-        show_message "desktop entry detected..."
+        show_message "Creating desktop entry for $app_name..."
        
-        #delete desktop entry if exists
+        # Backup existing desktop entry if it exists
         if [ -f "$desktop_entry_dest" ];then
-            show_message "desktop entry exist deleted..."
-            rm "$desktop_entry_dest"
+            show_message "Backing up existing desktop entry..."
+            mv "$desktop_entry_dest" "${desktop_entry_dest}.backup" 2>/dev/null || warning "Could not backup desktop entry"
         fi
+        
         cp "$desktop_entry" "$desktop_entry_dest" || error "can't copy desktop entry"
         sed -i "s|pspath|$SCR_PATH|g" "$desktop_entry_dest" || error "can't edit desktop entry"
+        show_message "Desktop entry created: $desktop_entry_dest"
     else
-        error "desktop entry Not Found"
+        error "Desktop entry not found: $desktop_entry"
     fi
 
-    #change photoshop icon of desktop entry
-    local entry_icon="../images/AdobePhotoshop-icon.png"
-    local launch_icon="$launcher_dest/AdobePhotoshop-icon.png"
+    # Copy icon
+    if [ -f "$icon_source" ]; then
+        cp "$icon_source" "$icon_dest" || error "can't copy icon image"
+        show_message "Icon copied: $icon_dest"
+        
+        # Update desktop entry with correct icon path
+        sed -i "s|photoshopicon|$icon_dest|g" "$desktop_entry_dest" || warning "Could not update icon path in desktop entry"
+    else
+        warning "Icon not found: $icon_source"
+    fi
 
-    cp "$entry_icon" "$launcher_dest" || error "can't copy icon image"
-    sed -i "s|photoshopicon|$launch_icon|g" "$desktop_entry_dest" || error "can't edit desktop entry"
-    sed -i "s|photoshopicon|$launch_icon|g" "$launcher_dest/launcher.sh" || error "can't edit launcher script"
+    # Create application command
+    show_message "Creating $app_name command..."
+    if [ -f "/usr/local/bin/$command_name" ];then
+        show_message "$command_name command already exists, updating..."
+        sudo rm "/usr/local/bin/$command_name" 2>/dev/null || warning "Could not remove existing command (no sudo access?)"
+    fi
     
-    #create photoshop command
-    show_message "create photoshop command..."
-    if [ -f "/usr/local/bin/photoshop" ];then
-        show_message "photoshop command exist deleted..."
-        sudo rm "/usr/local/bin/photoshop"
+    sudo mkdir -p "/usr/local/bin" 2>/dev/null || warning "Could not create /usr/local/bin directory (no sudo access?)"
+    
+    if sudo ln -s "$SCR_PATH/launcher/launcher.sh" "/usr/local/bin/$command_name" 2>/dev/null; then
+        show_message "Command created: /usr/local/bin/$command_name -> $SCR_PATH/launcher/launcher.sh"
+    else
+        # Try user-local command
+        show_message "Could not create system command (no sudo access). Trying user-local command..."
+        mkdir -p "$HOME/.local/bin"
+        if ln -sf "$SCR_PATH/launcher/launcher.sh" "$HOME/.local/bin/$command_name" 2>/dev/null; then
+            export PATH="$HOME/.local/bin:$PATH"
+            show_message "User command created: $HOME/.local/bin/$command_name -> $SCR_PATH/launcher/launcher.sh"
+            show_message "Added $HOME/.local/bin to PATH for this session"
+        else
+            warning "Failed to create $command_name command. You can run the application from the desktop entry."
+        fi
     fi
-    sudo mkdir -p "/usr/local/bin"
-    sudo ln -s "$SCR_PATH/launcher/launcher.sh" "/usr/local/bin/photoshop" || error "can't create photoshop command"
 
-    unset desktop_entry desktop_entry_dest launcher_path launcher_dest
+    unset desktop_entry desktop_entry_dest launcher_path launcher_dest icon_source icon_dest command_name
 }
 
 function set_dark_mod() {
