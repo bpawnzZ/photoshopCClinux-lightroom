@@ -121,31 +121,34 @@ function install_lightroomSE() {
     echo "===============| lightroom CC v7 |===============" >> "$SCR_PATH/wine-error.log"
     show_message "install lightroom..."
     show_message "\033[1;33mPlease don't change default Destination Folder\e[0m"
-
-    # Run Lightroom installer with timeout to prevent hanging
-    # Give it 5 minutes (300 seconds) to complete installation
-    timeout 300 wine "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log"
     
-    # Check if timeout occurred
-    local exit_code=$?
-    if [ "$exit_code" -eq 124 ]; then
-        warning "Lightroom installer timed out after 5 minutes. It may have completed or need manual intervention."
-        warning "Checking if Lightroom was installed..."
-    elif [ "$exit_code" -ne 0 ]; then
-        warning "Lightroom installer exited with code $exit_code. Checking if installation was successful anyway..."
+    # Run Lightroom portable in background - it may do first-time setup
+    # Don't wait for it to complete (user would have to close it)
+    show_message "Running Lightroom portable for first-time setup (in background)..."
+    wine "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log" &
+    local lr_pid=$!
+    
+    # Give it some time to do any first-time setup
+    show_message "Waiting 30 seconds for any first-time setup to complete..."
+    sleep 30
+    
+    # Kill Lightroom if it's still running (user hasn't closed it)
+    show_message "Stopping Lightroom setup process..."
+    if kill -0 "$lr_pid" 2>/dev/null; then
+        show_message "Lightroom setup still running, stopping it..."
+        kill "$lr_pid" 2>/dev/null || true
+        sleep 2
+        # Force kill if still running
+        kill -9 "$lr_pid" 2>/dev/null || true
     fi
     
-    # Kill any running Lightroom processes (it often auto-runs after install)
-    show_message "Stopping any running Lightroom processes..."
+    # Clean up any other Lightroom processes
     pkill -f "LightroomPortable.exe" 2>/dev/null || true
     pkill -f "Lightroom.exe" 2>/dev/null || true
     
-    # Wait a moment for processes to terminate
-    sleep 3
-    
     notify-send "Lightroom CC" "lightroom installed successfully" -i "lightroom"
     show_message "lightroomCC V7 x64 installed..."
-    unset filename filemd5 filelink filepath
+    unset filename filemd5 filelink filepath lr_pid
 }
 
 check_arg $@
