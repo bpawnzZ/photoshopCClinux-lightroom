@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=Lightroom CC
-Exec=bash pspath/launcher/launcher.sh
+Exec=bash pspath/launcher/lightroom-launcher.sh
 Type=Application
 StartupNotify=true
 Comment=Lightroom CC for Linux

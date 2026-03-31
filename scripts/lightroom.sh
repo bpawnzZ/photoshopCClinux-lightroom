@@ -126,25 +126,8 @@ function install_lightroomSE() {
     show_message "install lightroom..."
     show_message "\033[1;33mPlease don't change default Destination Folder\e[0m"
     
-    # Run Lightroom portable in background - it may do first-time setup
-    # Don't wait for it to complete (user would have to close it)
-    show_message "Running Lightroom portable for first-time setup (in background)..."
-    wine "$RESOURCES_PATH/lightroomCC/LightroomSE/Lightroom.8/LightroomPortable.exe" &>> "$SCR_PATH/wine-error.log" &
-    local lr_pid=$!
-    
-    # Give it some time to do any first-time setup
-    show_message "Waiting 30 seconds for any first-time setup to complete..."
-    sleep 30
-    
-    # Kill Lightroom if it's still running (user hasn't closed it)
-    show_message "Stopping Lightroom setup process..."
-    if kill -0 "$lr_pid" 2>/dev/null; then
-        show_message "Lightroom setup still running, stopping it..."
-        kill "$lr_pid" 2>/dev/null || true
-        sleep 2
-        # Force kill if still running
-        kill -9 "$lr_pid" 2>/dev/null || true
-    fi
+    # Lightroom is now extracted. First launch will happen via desktop icon.
+    show_message "Lightroom extracted successfully. First launch will occur via desktop icon."
     
     # Clean up any other Lightroom processes
     pkill -f "LightroomPortable.exe" 2>/dev/null || true
@@ -152,7 +135,7 @@ function install_lightroomSE() {
     
     notify-send "Lightroom CC" "lightroom installed successfully" -i "lightroom"
     show_message "lightroomCC V7 x64 installed..."
-    unset filename filemd5 filelink filepath lr_pid
+    unset filename filemd5 filelink filepath
 }
 
 check_arg $@

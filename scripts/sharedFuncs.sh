@@ -62,9 +62,24 @@ function show_message2() {
 function launcher() {
     local app_name="${1:-photoshop}"  # Default to photoshop if not specified
     
-    #create launcher script
-    local launcher_path="$PWD/launcher.sh"
+    # Determine which launcher script to use based on app_name
+    local launcher_source=""
+    local launcher_dest_name=""
     local launcher_dest="$SCR_PATH/launcher"
+    
+    case "$app_name" in
+        photoshop)
+            launcher_source="$PWD/photoshop-launcher.sh"
+            launcher_dest_name="photoshop-launcher.sh"
+            ;;
+        lightroom)
+            launcher_source="$PWD/lightroom-launcher.sh"
+            launcher_dest_name="lightroom-launcher.sh"
+            ;;
+        *)
+            error "Unknown application: $app_name"
+            ;;
+    esac
     
     # Only recreate launcher directory if it doesn't exist
     if [ ! -d "$launcher_dest" ]; then
@@ -74,20 +89,20 @@ function launcher() {
         show_message "Launcher directory already exists: $launcher_dest"
     fi
 
-    if [ -f "$launcher_path" ];then
-        show_message "launcher.sh detected..."
+    if [ -f "$launcher_source" ];then
+        show_message "$launcher_dest_name detected..."
         
         # Only copy launcher if it doesn't exist or is different
-        if [ ! -f "$launcher_dest/launcher.sh" ] || ! cmp -s "$launcher_path" "$launcher_dest/launcher.sh"; then
-            cp "$launcher_path" "$launcher_dest" || error "can't copy launcher"
-            sed -i "s|pspath|$SCR_PATH|g" "$launcher_dest/launcher.sh" && sed -i "s|pscache|$CACHE_PATH|g" "$launcher_dest/launcher.sh" || error "can't edit launcher script"
-            chmod +x "$SCR_PATH/launcher/launcher.sh" || error "can't chmod launcher script"
-            show_message "Launcher script updated"
+        if [ ! -f "$launcher_dest/$launcher_dest_name" ] || ! cmp -s "$launcher_source" "$launcher_dest/$launcher_dest_name"; then
+            cp "$launcher_source" "$launcher_dest" || error "can't copy launcher"
+            sed -i "s|pspath|$SCR_PATH|g" "$launcher_dest/$launcher_dest_name" && sed -i "s|pscache|$CACHE_PATH|g" "$launcher_dest/$launcher_dest_name" || error "can't edit launcher script"
+            chmod +x "$launcher_dest/$launcher_dest_name" || error "can't chmod launcher script"
+            show_message "Launcher script updated: $launcher_dest_name"
         else
-            show_message "Launcher script already up to date"
+            show_message "Launcher script already up to date: $launcher_dest_name"
         fi
     else
-        error "launcher.sh Note Found"
+        error "Launcher script not found: $launcher_source"
     fi
 
     # Determine which desktop entry to create based on app_name
@@ -145,8 +160,20 @@ function launcher() {
         warning "Icon not found: $icon_source"
     fi
 
-    # Create application command
+    # Create application command (symlink directly to launcher)
     show_message "Creating $app_name command..."
+    
+    # Determine which launcher to symlink to
+    local launcher_target=""
+    case "$app_name" in
+        photoshop)
+            launcher_target="$SCR_PATH/launcher/photoshop-launcher.sh"
+            ;;
+        lightroom)
+            launcher_target="$SCR_PATH/launcher/lightroom-launcher.sh"
+            ;;
+    esac
+    
     if [ -f "/usr/local/bin/$command_name" ];then
         show_message "$command_name command already exists, updating..."
         sudo rm "/usr/local/bin/$command_name" 2>/dev/null || warning "Could not remove existing command (no sudo access?)"
@@ -154,22 +181,22 @@ function launcher() {
     
     sudo mkdir -p "/usr/local/bin" 2>/dev/null || warning "Could not create /usr/local/bin directory (no sudo access?)"
     
-    if sudo ln -s "$SCR_PATH/launcher/launcher.sh" "/usr/local/bin/$command_name" 2>/dev/null; then
-        show_message "Command created: /usr/local/bin/$command_name -> $SCR_PATH/launcher/launcher.sh"
+    if sudo ln -s "$launcher_target" "/usr/local/bin/$command_name" 2>/dev/null; then
+        show_message "Command created: /usr/local/bin/$command_name -> $launcher_target"
     else
         # Try user-local command
         show_message "Could not create system command (no sudo access). Trying user-local command..."
         mkdir -p "$HOME/.local/bin"
-        if ln -sf "$SCR_PATH/launcher/launcher.sh" "$HOME/.local/bin/$command_name" 2>/dev/null; then
+        if ln -sf "$launcher_target" "$HOME/.local/bin/$command_name" 2>/dev/null; then
             export PATH="$HOME/.local/bin:$PATH"
-            show_message "User command created: $HOME/.local/bin/$command_name -> $SCR_PATH/launcher/launcher.sh"
+            show_message "User command created: $HOME/.local/bin/$command_name -> $launcher_target"
             show_message "Added $HOME/.local/bin to PATH for this session"
         else
             warning "Failed to create $command_name command. You can run the application from the desktop entry."
         fi
     fi
 
-    unset desktop_entry desktop_entry_dest launcher_path launcher_dest icon_source icon_dest command_name
+    unset desktop_entry desktop_entry_dest launcher_source launcher_dest_name launcher_dest icon_source icon_dest command_name launcher_target
 }
 
 function set_dark_mod() {
