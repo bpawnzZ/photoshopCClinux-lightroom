@@ -155,7 +155,20 @@ function launcher() {
         show_message "Icon copied: $icon_dest"
         
         # Update desktop entry with correct icon path
-        sed -i "s|photoshopicon|$icon_dest|g" "$desktop_entry_dest" || warning "Could not update icon path in desktop entry"
+        # Determine which pattern to replace based on application
+        local icon_pattern=""
+        case "$app_name" in
+            photoshop)
+                icon_pattern="photoshopicon"
+                ;;
+            lightroom)
+                icon_pattern="lightroom"
+                ;;
+        esac
+        
+        if [ -n "$icon_pattern" ]; then
+            sed -i "s|$icon_pattern|$icon_dest|g" "$desktop_entry_dest" || warning "Could not update icon path in desktop entry"
+        fi
     else
         warning "Icon not found: $icon_source"
     fi
