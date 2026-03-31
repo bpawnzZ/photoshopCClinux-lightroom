@@ -654,8 +654,6 @@ function check_install_wine() {
 }
 
 # Enhanced wine symlink checking with priority: wine-staging > wine64 > wine
-        warning "wine command test failed."
-# Enhanced wine symlink checking with priority: wine-staging > wine64 > wine
 function check_wine_symlink() {
     show_message "Checking wine/wine64/wine-staging symlinks..."
     
@@ -698,6 +696,16 @@ function check_wine_symlink() {
         
         # wine exists but doesn't point to our found variant
         show_message "wine exists at $current_wine_path but doesn't point to $found_wine"
+        
+        # Check if this is a circular symlink (wine -> wine64 -> wine)
+        if [ -L "$current_wine_path" ]; then
+            local link_target="$(readlink "$current_wine_path")"
+            if [ "$link_target" = "wine64" ] || [ "$link_target" = "wine" ]; then
+                show_message "Detected circular symlink: $current_wine_path -> $link_target"
+                show_message "Removing broken symlink..."
+                safe_sudo rm "$current_wine_path" 2>/dev/null || warning "Could not remove symlink (no sudo access?)"
+            fi
+        fi
         
         # Backup original if it's a regular file (not a symlink)
         if [ -f "$current_wine_path" ] && [ ! -L "$current_wine_path" ]; then
